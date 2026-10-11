@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Repair JSON, preview it as rows, and export it to Excel." />
+    <title>JSONly — JSON to Excel, made simple</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="brand" href="#top" aria-label="JSONly home">
+          <span class="brand-mark">{ }</span>
+          <span>JSONly</span>
+        </a>
+        <span class="privacy-note"><span class="privacy-dot"></span> Your data stays in your browser</span>
+      </nav>
+
+      <section class="hero" id="top">
+        <p class="eyebrow">JSON TO EXCEL, WITHOUT THE HEADACHE</p>
+        <h1>Turn messy JSON into<br /><em>ready-to-use</em> spreadsheets.</h1>
+        <p class="hero-copy">Upload a file or paste your data. We’ll validate it, repair common formatting issues, and shape it into a clean Excel file.</p>
+      </section>
+
+      <section class="workspace" aria-label="JSON conversion workspace">
+        <div class="source-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="step">01 — ADD YOUR DATA</p>
+              <h2>Start with a JSON file</h2>
+            </div>
+            <button class="text-button" id="sampleButton" type="button">Try a sample</button>
+          </div>
+
+          <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload a JSON file">
+            <input id="fileInput" type="file" accept=".json,.txt,application/json,text/plain" />
+            <div class="upload-icon" aria-hidden="true">↑</div>
+            <strong>Drop your file here</strong>
+            <span>or <u>browse files</u> from your computer</span>
+            <small>JSON or TXT · up to 10 MB</small>
+          </div>
+
+          <div class="or-divider"><span>OR PASTE JSON</span></div>
+          <label class="sr-only" for="jsonInput">Paste JSON</label>
+          <textarea id="jsonInput" spellcheck="false" placeholder='Paste JSON here, e.g. [{"name": "Asha", "score": 98}]'></textarea>
+          <div class="source-footer">
+            <span id="charCount">0 characters</span>
+            <button class="primary-button" id="processButton" type="button">Validate &amp; prepare <span>→</span></button>
+          </div>
+        </div>
+
+        <aside class="status-panel" aria-live="polite">
+          <div class="panel-heading">
+            <div>
+              <p class="step">02 — WE CHECK IT</p>
+              <h2>Conversion status</h2>
+            </div>
+            <span class="status-pill neutral" id="statusPill">Waiting</span>
+          </div>
+          <div class="status-empty" id="statusEmpty">
+            <div class="sparkle">✦</div>
+            <p>Your results will appear here.</p>
+            <span>We look for syntax errors, repair safe common issues, and organize nested data into columns.</span>
+          </div>
+          <div class="status-result hidden" id="statusResult">
+            <div class="success-orb">✓</div>
+            <div>
+              <strong id="resultTitle">Your JSON is ready</strong>
+              <p id="resultMessage"></p>
+            </div>
+            <ul class="repairs-list" id="repairsList"></ul>
+          </div>
+          <div class="privacy-card">
+            <span>⌁</span>
+            <p><strong>Private by design.</strong><br />Files are processed locally and never uploaded.</p>
+          </div>
+        </aside>
+      </section>
+
+      <section class="results hidden" id="results" aria-labelledby="resultsTitle">
+        <div class="results-topline">
+          <div>
+            <p class="step">03 — REVIEW &amp; EXPORT</p>
+            <h2 id="resultsTitle">Your spreadsheet preview</h2>
+          </div>
+          <div class="results-actions">
+            <button class="secondary-button" id="downloadJsonButton" type="button">Download cleaned JSON</button>
+            <button class="download-button" id="downloadButton" type="button">Download Excel <span>↓</span></button>
+          </div>
+        </div>
+        <div class="data-summary">
+          <span id="rowCount">0 rows</span><span class="summary-divider">•</span><span id="columnCount">0 columns</span><span class="summary-divider">•</span><span>Nested fields flattened automatically</span>
+        </div>
+        <div class="table-frame">
+          <div class="table-scroll">
+            <table id="previewTable"></table>
+          </div>
+          <p class="table-note" id="tableNote"></p>
+        </div>
+      </section>
+
+      <section class="how-it-works" aria-label="How it works">
+        <p class="eyebrow">SIMPLE FOR EVERYONE</p>
+        <div class="feature-grid">
+          <article><span>01</span><h3>Add a file</h3><p>Upload JSON or paste it directly into the editor.</p></article>
+          <article><span>02</span><h3>We make it readable</h3><p>Safe fixes handle trailing commas, comments, smart quotes, and more.</p></article>
+          <article><span>03</span><h3>Open in Excel</h3><p>Review your table, then download an Excel workbook in one click.</p></article>
+        </div>
+      </section>
+    </main>
+
+    <footer><span>JSONly</span><span>Made for clean data days.</span></footer>
+    <div class="toast" id="toast" role="status"></div>
+    <script src="./app.js"></script>
+  </body>
+</html>
