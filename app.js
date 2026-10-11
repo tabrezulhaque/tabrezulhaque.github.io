@@ -15,6 +15,13 @@ const elements = {
   repairs: $('#repairsList'),
   results: $('#results'),
   table: $('#previewTable'),
+  tableView: $('#tableView'),
+  treeView: $('#treeView'),
+  previewTabs: document.querySelectorAll('.preview-tab'),
+  jsonTree: $('#jsonTree'),
+  treeSummary: $('#treeSummary'),
+  expandTree: $('#expandTreeButton'),
+  collapseTree: $('#collapseTreeButton'),
   rowCount: $('#rowCount'),
   columnCount: $('#columnCount'),
   note: $('#tableNote'),
@@ -268,6 +275,89 @@ function renderPreview(rows, columns) {
   elements.note.textContent = rows.length > 100 ? 'Showing the first 100 rows. Your Excel export will include every row.' : 'This is exactly how your data will be organized in Excel.';
 }
 
+function truncateText(value, limit = 240) {
+  return value.length > limit ? `${value.slice(0, limit)}…` : value;
+}
+
+function treeValue(value) {
+  if (value === null) return { type: 'null', text: 'null' };
+  if (typeof value === 'string') return { type: 'string', text: truncateText(JSON.stringify(value)) };
+  return { type: typeof value, text: String(value) };
+}
+
+function treeNodeCount(value, cap = 1200) {
+  let count = 0;
+  const visit = (item) => {
+    if (count >= cap) return;
+    count += 1;
+    if (item && typeof item === 'object') Object.values(item).forEach(visit);
+  };
+  visit(value);
+  return count;
+}
+
+function renderTreeItem(key, value, depth = 0) {
+  const isContainer = value !== null && typeof value === 'object';
+  if (!isContainer) {
+    const item = document.createElement('div');
+    item.className = 'tree-leaf';
+    const keyLabel = document.createElement('span');
+    keyLabel.className = 'tree-key';
+    keyLabel.textContent = key;
+    const display = treeValue(value);
+    const content = document.createElement('span');
+    content.className = `tree-value ${display.type}`;
+    content.textContent = ` ${display.text}`;
+    item.append(keyLabel, content);
+    return item;
+  }
+
+  const details = document.createElement('details');
+  details.className = 'tree-node';
+  details.open = depth < 2;
+  const summary = document.createElement('summary');
+  const keyLabel = document.createElement('span');
+  keyLabel.className = 'tree-key';
+  keyLabel.textContent = key;
+  const meta = document.createElement('span');
+  const count = Array.isArray(value) ? value.length : Object.keys(value).length;
+  meta.className = 'tree-meta';
+  meta.textContent = Array.isArray(value) ? `Array(${count})` : `Object {${count}}`;
+  summary.append(keyLabel, meta);
+  const children = document.createElement('div');
+  children.className = 'tree-node-children';
+  const entries = Array.isArray(value) ? value.map((item, index) => [`[${index}]`, item]) : Object.entries(value);
+  const displayed = entries.slice(0, 100);
+  displayed.forEach(([childKey, childValue]) => children.appendChild(renderTreeItem(childKey, childValue, depth + 1)));
+  if (entries.length > displayed.length) {
+    const more = document.createElement('div');
+    more.className = 'tree-truncated';
+    more.textContent = `… ${entries.length - displayed.length} more item${entries.length - displayed.length === 1 ? '' : 's'}`;
+    children.appendChild(more);
+  }
+  details.append(summary, children);
+  return details;
+}
+
+function renderJsonTree(data) {
+  elements.jsonTree.innerHTML = '';
+  const rootName = Array.isArray(data) ? 'root' : 'root';
+  elements.jsonTree.appendChild(renderTreeItem(rootName, data));
+  const nodes = treeNodeCount(data);
+  elements.treeSummary.textContent = nodes >= 1200 ? '1,200+ nodes · large structures are shortened' : `${nodes.toLocaleString()} node${nodes === 1 ? '' : 's'} · expand any branch`;
+}
+
+function switchPreview(view) {
+  const showTree = view === 'tree';
+  elements.tableView.classList.toggle('hidden', showTree);
+  elements.treeView.classList.toggle('hidden', !showTree);
+  elements.previewTabs.forEach((tab) => {
+    const active = tab.dataset.preview === view;
+    tab.classList.toggle('active', active);
+    tab.setAttribute('aria-selected', String(active));
+  });
+}
+
 function processJson() {
   const raw = elements.input.value.trim();
   if (!raw) { showToast('Add a JSON file or paste data first.'); elements.input.focus(); return; }
@@ -277,6 +367,8 @@ function processJson() {
     if (!table.rows.length || !table.columns.length) throw new Error('This JSON does not contain any rows or fields we can export.');
     prepared = { ...parsed, ...table };
     renderPreview(prepared.rows, prepared.columns);
+    renderJsonTree(prepared.data);
+    switchPreview('table');
     const repairText = parsed.repairs.length ? `${parsed.repairs.length} safe repair${parsed.repairs.length === 1 ? '' : 's'} applied.` : 'The format is valid as-is.';
     setStatus('success', 'Your JSON is ready', `${table.rows.length.toLocaleString()} rows and ${table.columns.length} columns are ready for Excel. ${repairText}`, [ ...(table.sourceDescription ? [table.sourceDescription] : []), ...parsed.repairs, 'Flattened nested fields into spreadsheet columns' ]);
     elements.results.classList.remove('hidden');
@@ -344,6 +436,9 @@ elements.sample.addEventListener('click', () => { elements.input.value = sampleJ
 elements.file.addEventListener('change', (event) => loadFile(event.target.files[0]));
 elements.download.addEventListener('click', downloadExcel);
 elements.downloadJson.addEventListener('click', downloadCleanJson);
+elements.previewTabs.forEach((tab) => tab.addEventListener('click', () => switchPreview(tab.dataset.preview)));
+elements.expandTree.addEventListener('click', () => elements.jsonTree.querySelectorAll('details').forEach((node) => { node.open = true; }));
+elements.collapseTree.addEventListener('click', () => elements.jsonTree.querySelectorAll('details').forEach((node) => { node.open = false; }));
 ['dragenter', 'dragover'].forEach((eventName) => elements.dropzone.addEventListener(eventName, (event) => { event.preventDefault(); elements.dropzone.classList.add('is-dragging'); }));
 ['dragleave', 'drop'].forEach((eventName) => elements.dropzone.addEventListener(eventName, (event) => { event.preventDefault(); elements.dropzone.classList.remove('is-dragging'); }));
 elements.dropzone.addEventListener('drop', (event) => loadFile(event.dataTransfer.files[0]));

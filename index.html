@@ -96,11 +96,29 @@
         <div class="data-summary">
           <span id="rowCount">0 rows</span><span class="summary-divider">•</span><span id="columnCount">0 columns</span><span class="summary-divider">•</span><span>Nested fields flattened automatically</span>
         </div>
-        <div class="table-frame">
-          <div class="table-scroll">
-            <table id="previewTable"></table>
+        <div class="preview-tabs" role="tablist" aria-label="Preview format">
+          <button class="preview-tab active" id="tableTab" type="button" role="tab" aria-selected="true" aria-controls="tableView" data-preview="table">Spreadsheet view</button>
+          <button class="preview-tab" id="treeTab" type="button" role="tab" aria-selected="false" aria-controls="treeView" data-preview="tree">JSON tree view</button>
+        </div>
+        <div class="preview-content" id="tableView" role="tabpanel" aria-labelledby="tableTab">
+          <div class="table-frame">
+            <div class="table-scroll">
+              <table id="previewTable"></table>
+            </div>
+            <p class="table-note" id="tableNote"></p>
           </div>
-          <p class="table-note" id="tableNote"></p>
+        </div>
+        <div class="preview-content hidden" id="treeView" role="tabpanel" aria-labelledby="treeTab">
+          <div class="tree-frame">
+            <div class="tree-toolbar">
+              <span id="treeSummary">JSON structure</span>
+              <div>
+                <button class="tree-action" id="expandTreeButton" type="button">Expand all</button>
+                <button class="tree-action" id="collapseTreeButton" type="button">Collapse all</button>
+              </div>
+            </div>
+            <div class="json-tree" id="jsonTree" aria-label="Interactive JSON tree"></div>
+          </div>
         </div>
       </section>
 
